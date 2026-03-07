@@ -1,6 +1,15 @@
 [package]
-name = "project"
+name = "project2-trees"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+description = "Red-Black Tree and AVL Tree implementation in Rust"
 
 [dependencies]
+rand = "0.10.0"
+
+# This enables Rust's built-in benchmarking tools
+[dev-dependencies]
+
+[[bin]]
+name = "project2-trees"
+path = "src/main.rs"

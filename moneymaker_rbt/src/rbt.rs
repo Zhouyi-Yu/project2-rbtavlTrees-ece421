@@ -23,7 +23,7 @@
 //     mutation even through shared references).
 //   - Option<...>       to represent "this pointer might be null / empty".
 //
-// So a "link to a child" looks like:  Option<Rc<RefCell<Node>>>
+// So a "link to a child" looks like:  Option<NodeRef>
 // which reads: "optionally, a shared, mutable reference to a Node".
 // =============================================================================
 
@@ -49,15 +49,15 @@ impl Display for Color {
 pub struct Node {
     pub key: u32,
     pub color: Color,
-    pub left: RBLink,
-    pub right: RBLink,
-    pub parent: RBLink,
+    pub left: Option<NodeRef>,
+    pub right: Option<NodeRef>,
+    pub parent: Option<NodeRef>,
 }
 
-pub type RBLink = Option<Rc<RefCell<Node>>>;
+pub type NodeRef = Rc<RefCell<Node>>;
 
 impl Node {
-    pub fn new(key: u32) -> Rc<RefCell<Self>> {
+    pub fn new(key: u32) -> NodeRef {
         Rc::new(RefCell::new(Node {
             key,
             color: Color::Red,
@@ -69,49 +69,49 @@ impl Node {
 }
 
 pub struct RedBlackTree {
-    root: RBLink,
+    root: Option<NodeRef>,
 }
 
-fn color_of(node: &RBLink) -> Color {
+fn color_of(node: &Option<NodeRef>) -> Color {
     match node {
         None => Color::Black,
         Some(n) => n.borrow().color,
     }
 }
 
-fn clone_link(link: &RBLink) -> RBLink {
+fn clone_link(link: &Option<NodeRef>) -> Option<NodeRef> {
     link.as_ref().map(Rc::clone)
 }
 
-fn left_of(node: &RBLink) -> RBLink {
+fn left_of(node: &Option<NodeRef>) -> Option<NodeRef> {
     node.as_ref()
         .map(|n| clone_link(&n.borrow().left))
         .flatten()
 }
 
-fn right_of(node: &RBLink) -> RBLink {
+fn right_of(node: &Option<NodeRef>) -> Option<NodeRef> {
     node.as_ref()
         .map(|n| clone_link(&n.borrow().right))
         .flatten()
 }
 
-fn parent_of(node: &RBLink) -> RBLink {
+fn parent_of(node: &Option<NodeRef>) -> Option<NodeRef> {
     node.as_ref()
         .map(|n| clone_link(&n.borrow().parent))
         .flatten()
 }
 
-fn grandparent_of(node: &RBLink) -> RBLink {
+fn grandparent_of(node: &Option<NodeRef>) -> Option<NodeRef> {
     parent_of(&parent_of(node))
 }
 
-fn set_color(node: &RBLink, color: Color) {
+fn set_color(node: &Option<NodeRef>, color: Color) {
     if let Some(n) = node {
         n.borrow_mut().color = color;
     }
 }
 
-fn same_node(a: &RBLink, b: &RBLink) -> bool {
+fn same_node(a: &Option<NodeRef>, b: &Option<NodeRef>) -> bool {
     match (a, b) {
         (Some(x), Some(y)) => Rc::ptr_eq(x, y),
         (None, None) => true,
@@ -120,7 +120,7 @@ fn same_node(a: &RBLink, b: &RBLink) -> bool {
 }
 
 impl RedBlackTree {
-    fn rotate_left(&mut self, x_link: &RBLink) {
+    fn rotate_left(&mut self, x_link: &Option<NodeRef>) {
         let x = match x_link {
             Some(n) => Rc::clone(n),
             None => return,
@@ -158,7 +158,7 @@ impl RedBlackTree {
         x.borrow_mut().parent = Some(Rc::clone(&y));
     }
 
-    fn rotate_right(&mut self, y_link: &RBLink) {
+    fn rotate_right(&mut self, y_link: &Option<NodeRef>) {
         let y = match y_link {
             Some(n) => Rc::clone(n),
             None => return,
@@ -203,7 +203,7 @@ impl RedBlackTree {
     pub fn insert(&mut self, key: u32) {
         let z = Node::new(key);
 
-        let mut parent: RBLink = None;
+        let mut parent: Option<NodeRef> = None;
         let mut current = clone_link(&self.root);
 
         while let Some(ref cur_node) = clone_link(&current) {
@@ -237,7 +237,7 @@ impl RedBlackTree {
         set_color(&self.root, Color::Black);
     }
 
-    fn insert_fixup(&mut self, mut z: RBLink) {
+    fn insert_fixup(&mut self, mut z: Option<NodeRef>) {
         while color_of(&parent_of(&z)) == Color::Red {
             let parent = parent_of(&z);
             let grandparent = grandparent_of(&z);
@@ -296,7 +296,7 @@ impl RedBlackTree {
         true
     }
 
-    fn find_node(&self, key: u32) -> RBLink {
+    fn find_node(&self, key: u32) -> Option<NodeRef> {
         let mut current = clone_link(&self.root);
         while let Some(ref node) = clone_link(&current) {
             let k = node.borrow().key;
@@ -311,7 +311,7 @@ impl RedBlackTree {
         None
     }
 
-    fn delete_node(&mut self, z: Rc<RefCell<Node>>) {
+    fn delete_node(&mut self, z: NodeRef) {
         let y;
         let original_y_color;
 
@@ -326,13 +326,13 @@ impl RedBlackTree {
 
         original_y_color = y.borrow().color;
 
-        let x: RBLink = {
+        let x: Option<NodeRef> = {
             let y_left = clone_link(&y.borrow().left);
             let y_right = clone_link(&y.borrow().right);
             if y_left.is_some() { y_left } else { y_right }
         };
 
-        let x_parent: RBLink;
+        let x_parent: Option<NodeRef>;
 
         let y_parent = clone_link(&y.borrow().parent);
 
@@ -364,7 +364,7 @@ impl RedBlackTree {
         }
     }
 
-    fn minimum(&self, node: &Rc<RefCell<Node>>) -> Rc<RefCell<Node>> {
+    fn minimum(&self, node: &NodeRef) -> NodeRef {
         let mut current = Rc::clone(node);
         loop {
             let left = clone_link(&current.borrow().left);
@@ -376,7 +376,7 @@ impl RedBlackTree {
         current
     }
 
-    fn delete_fixup(&mut self, mut x: RBLink, mut x_parent: RBLink) {
+    fn delete_fixup(&mut self, mut x: Option<NodeRef>, mut x_parent: Option<NodeRef>) {
         while !same_node(&x, &self.root) && color_of(&x) == Color::Black {
             let xp = clone_link(&x_parent);
             let xp_left = left_of(&xp);
@@ -448,7 +448,7 @@ impl RedBlackTree {
         Self::count_leaves_rec(&self.root)
     }
 
-    fn count_leaves_rec(node: &RBLink) -> usize {
+    fn count_leaves_rec(node: &Option<NodeRef>) -> usize {
         match node {
             None => 0,
             Some(n) => {
@@ -467,7 +467,7 @@ impl RedBlackTree {
         Self::height_rec(&self.root)
     }
 
-    fn height_rec(node: &RBLink) -> usize {
+    fn height_rec(node: &Option<NodeRef>) -> usize {
         match node {
             None => 0,
             Some(n) => {
@@ -484,7 +484,7 @@ impl RedBlackTree {
         println!("]");
     }
 
-    fn inorder_rec(node: &RBLink) {
+    fn inorder_rec(node: &Option<NodeRef>) {
         if let Some(n) = node {
             let left = clone_link(&n.borrow().left);
             let right = clone_link(&n.borrow().right);
@@ -508,7 +508,7 @@ impl RedBlackTree {
         println!("└──────────────────────────────────────");
     }
 
-    fn print_tree_rec(node: &RBLink, prefix: &str, is_left: bool) {
+    fn print_tree_rec(node: &Option<NodeRef>, prefix: &str, is_left: bool) {
         if let Some(n) = node {
             let right = clone_link(&n.borrow().right);
             let left = clone_link(&n.borrow().left);

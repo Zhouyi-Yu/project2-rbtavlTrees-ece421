@@ -30,20 +30,19 @@
 // =============================================================================
 
 use std::cell::RefCell;
-use std::fmt::{self, Display};
 use std::rc::Rc;
 
-pub type AVLLink = Option<Rc<RefCell<AVLNode>>>;
+pub type NodeRef = Rc<RefCell<AVLNode>>;
 
 pub struct AVLNode {
     pub key: u32,
     pub height: i32,
-    pub left: AVLLink,
-    pub right: AVLLink,
+    pub left: Option<NodeRef>,
+    pub right: Option<NodeRef>,
 }
 
 impl AVLNode {
-    pub fn new(key: u32) -> Rc<RefCell<Self>> {
+    pub fn new(key: u32) -> NodeRef {
         Rc::new(RefCell::new(AVLNode {
             key,
             height: 1,
@@ -54,33 +53,33 @@ impl AVLNode {
 }
 
 pub struct AVLTree {
-    root: AVLLink,
+    root: Option<NodeRef>,
 }
 
-fn node_height(link: &AVLLink) -> i32 {
+fn node_height(link: &Option<NodeRef>) -> i32 {
     match link {
         None => 0,
         Some(n) => n.borrow().height,
     }
 }
 
-fn update_height(node: &Rc<RefCell<AVLNode>>) {
+fn update_height(node: &NodeRef) {
     let lh = node_height(&node.borrow().left);
     let rh = node_height(&node.borrow().right);
     node.borrow_mut().height = 1 + lh.max(rh);
 }
 
-fn balance_factor(node: &Rc<RefCell<AVLNode>>) -> i32 {
+fn balance_factor(node: &NodeRef) -> i32 {
     let lh = node_height(&node.borrow().left);
     let rh = node_height(&node.borrow().right);
     lh - rh
 }
 
-fn clone_link(link: &AVLLink) -> AVLLink {
+fn clone_link(link: &Option<NodeRef>) -> Option<NodeRef> {
     link.as_ref().map(Rc::clone)
 }
 
-fn rotate_right(y: Rc<RefCell<AVLNode>>) -> Rc<RefCell<AVLNode>> {
+fn rotate_right(y: NodeRef) -> NodeRef {
     let x = clone_link(&y.borrow().left).expect("rotate_right: left child must exist");
 
     let x_right = clone_link(&x.borrow().right);
@@ -94,7 +93,7 @@ fn rotate_right(y: Rc<RefCell<AVLNode>>) -> Rc<RefCell<AVLNode>> {
     x
 }
 
-fn rotate_left(x: Rc<RefCell<AVLNode>>) -> Rc<RefCell<AVLNode>> {
+fn rotate_left(x: NodeRef) -> NodeRef {
     let y = clone_link(&x.borrow().right).expect("rotate_left: right child must exist");
 
     let y_left = clone_link(&y.borrow().left);
@@ -108,7 +107,7 @@ fn rotate_left(x: Rc<RefCell<AVLNode>>) -> Rc<RefCell<AVLNode>> {
     y
 }
 
-fn rebalance(node: Rc<RefCell<AVLNode>>) -> Rc<RefCell<AVLNode>> {
+fn rebalance(node: NodeRef) -> NodeRef {
     update_height(&node);
     let bf = balance_factor(&node);
 
@@ -142,7 +141,7 @@ impl AVLTree {
         self.root = Self::insert_rec(clone_link(&self.root), key);
     }
 
-    fn insert_rec(node: AVLLink, key: u32) -> AVLLink {
+    fn insert_rec(node: Option<NodeRef>, key: u32) -> Option<NodeRef> {
         match node {
             None => Some(AVLNode::new(key)),
             Some(n) => {
@@ -167,7 +166,7 @@ impl AVLTree {
         deleted
     }
 
-    fn delete_rec(node: AVLLink, key: u32) -> (AVLLink, bool) {
+    fn delete_rec(node: Option<NodeRef>, key: u32) -> (Option<NodeRef>, bool) {
         match node {
             None => (None, false),
             Some(n) => {
@@ -208,7 +207,7 @@ impl AVLTree {
         }
     }
 
-    fn find_min(node: &Rc<RefCell<AVLNode>>) -> Rc<RefCell<AVLNode>> {
+    fn find_min(node: &NodeRef) -> NodeRef {
         let left = clone_link(&node.borrow().left);
         match left {
             None => Rc::clone(node),
@@ -220,7 +219,7 @@ impl AVLTree {
         Self::count_leaves_rec(&self.root)
     }
 
-    fn count_leaves_rec(node: &AVLLink) -> usize {
+    fn count_leaves_rec(node: &Option<NodeRef>) -> usize {
         match node {
             None => 0,
             Some(n) => {
@@ -245,7 +244,7 @@ impl AVLTree {
         println!("]");
     }
 
-    fn inorder_rec(node: &AVLLink) {
+    fn inorder_rec(node: &Option<NodeRef>) {
         if let Some(n) = node {
             let left = clone_link(&n.borrow().left);
             let right = clone_link(&n.borrow().right);
@@ -269,7 +268,7 @@ impl AVLTree {
         println!("└──────────────────────────────────────");
     }
 
-    fn print_tree_rec(node: &AVLLink, prefix: &str, is_left: bool) {
+    fn print_tree_rec(node: &Option<NodeRef>, prefix: &str, is_left: bool) {
         if let Some(n) = node {
             let right = clone_link(&n.borrow().right);
             let left = clone_link(&n.borrow().left);
@@ -299,7 +298,7 @@ impl AVLTree {
         Self::search_rec(&self.root, key)
     }
 
-    fn search_rec(node: &AVLLink, key: u32) -> bool {
+    fn search_rec(node: &Option<NodeRef>, key: u32) -> bool {
         match node {
             None => false,
             Some(n) => {

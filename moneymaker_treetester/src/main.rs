@@ -16,7 +16,7 @@
 //!    Red-black trees guarantee a logarithmic upper bound for key operations (O(log n)) by maintaining a balanced height. Naive BSTs can degenerate to O(n) "linked lists" when data is inserted in sorted or semi-sorted order, leading to performance bottlenecks.
 //!
 //! 2. **Do you need to apply any kind of error handling in your system?**
-//!    Yes. We utilize Rust's `Option<T>` for pointers (`RBLink` and `AVLLink`) to handle potentially null children or parents safely. The CLI also includes input validation (e.g., `parse_u32`) to prevent invalid data or malformed commands from crashing the program.
+//!    Yes. We utilize Rust's `Option<T>` for pointers (`NodeRef`) to handle potentially null children or parents safely. The CLI also includes input validation (e.g., `parse_u32`) to prevent invalid data or malformed commands from crashing the program.
 //!
 //! 3. **What components do the Red-black tree and AVL tree have in common?**
 //!    Both trees share the fundamental binary search tree structure (ordered keys) and the mechanism of **Tree Rotations** (left and right) to maintain balance. They both use smart pointers (`Rc<RefCell<Node>>`) for safe, shared, mutable ownership within the tree.
@@ -115,7 +115,6 @@ fn main() {
     }
 }
 
-
 fn run_rbt_menu(lines: &mut impl Iterator<Item = io::Result<String>>) {
     let mut tree = RedBlackTree::new();
     println!("\n[ Red-Black Tree — empty tree created ]");
@@ -182,7 +181,6 @@ fn run_rbt_menu(lines: &mut impl Iterator<Item = io::Result<String>>) {
         }
     }
 }
-
 
 fn run_avl_menu(lines: &mut impl Iterator<Item = io::Result<String>>) {
     let mut tree = AVLTree::new();
@@ -251,7 +249,6 @@ fn run_avl_menu(lines: &mut impl Iterator<Item = io::Result<String>>) {
     }
 }
 
-
 fn run_demo() {
     println!("\n══════════════════════════════════════════════════");
     println!("  DEMO: Inserting [10, 20, 30, 15, 25, 5, 1, 7]");
@@ -291,7 +288,6 @@ fn run_demo() {
     avl.print_tree();
     avl.print_inorder();
 }
-
 
 fn parse_u32(s: Option<&&str>) -> Option<u32> {
     s?.trim().parse().ok()

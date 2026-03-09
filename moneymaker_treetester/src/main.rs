@@ -7,12 +7,10 @@
 // run the benchmarks.
 // =============================================================================
 
-mod avl;
 mod benchmark;
-mod rbt;
 
-use avl::AVLTree;
-use rbt::RedBlackTree;
+use moneymaker_avl::avl::AVLTree;
+use moneymaker_rbt::rbt::RedBlackTree;
 use std::io::{self, BufRead, Write};
 
 fn main() {

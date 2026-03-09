@@ -136,6 +136,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8ca58f447f06ed17d5fc4043ce1b10dd205e060fb3ce5b979b8ed8e59ff3f79"
 
 [[package]]
+name = "moneymaker_avl"
+version = "0.1.0"
+
+[[package]]
+name = "moneymaker_rbt"
+version = "0.1.0"
+
+[[package]]
 name = "prettyplease"
 version = "0.2.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -158,6 +166,8 @@ dependencies = [
 name = "project2-trees"
 version = "0.1.0"
 dependencies = [
+ "moneymaker_avl",
+ "moneymaker_rbt",
  "rand",
 ]
 

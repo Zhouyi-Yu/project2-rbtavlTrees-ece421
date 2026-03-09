@@ -1,0 +1,6 @@
+[package]
+name = "moneymaker_rbt"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]

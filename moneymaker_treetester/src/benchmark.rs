@@ -16,12 +16,11 @@
 //     4. Average over multiple runs for accuracy.
 // =============================================================================
 
-use crate::avl::AVLTree;
-use crate::rbt::RedBlackTree;
+use moneymaker_avl::avl::AVLTree;
+use moneymaker_rbt::rbt::RedBlackTree;
 use std::time::{Duration, Instant};
 
 use rand::rngs::Xoshiro256PlusPlus;
-use rand::Rng;
 use rand::SeedableRng;
 
 const RUNS: u32 = 3;

@@ -6,6 +6,8 @@ description = "Red-Black Tree and AVL Tree implementation in Rust"
 
 [dependencies]
 rand = "0.10.0"
+moneymaker_rbt = { path = "../moneymaker_rbt" }
+moneymaker_avl = { path = "../moneymaker_avl" }
 
 # This enables Rust's built-in benchmarking tools
 [dev-dependencies]

@@ -1,1 +1,3 @@
-pub mod rbt;
+mod rbt;
+
+pub use rbt::RedBlackTree;

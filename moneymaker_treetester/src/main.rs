@@ -70,7 +70,62 @@
 // run the benchmarks.
 // =============================================================================
 
+mod advanced;
 mod benchmark;
+
+impl advanced::TreeOps for RedBlackTree {
+    fn insert(&mut self, v: u32) {
+        RedBlackTree::insert(self, v);
+    }
+    fn delete(&mut self, v: u32) -> bool {
+        RedBlackTree::delete(self, v)
+    }
+    fn search(&self, v: u32) -> bool {
+        RedBlackTree::search(self, v)
+    }
+    fn count_leaves(&self) -> usize {
+        RedBlackTree::count_leaves(self)
+    }
+    fn height(&self) -> usize {
+        RedBlackTree::height(self)
+    }
+    fn is_empty(&self) -> bool {
+        RedBlackTree::is_empty(self)
+    }
+    fn print_inorder(&self) {
+        RedBlackTree::print_inorder(self);
+    }
+    fn print_tree(&self) {
+        RedBlackTree::print_tree(self);
+    }
+}
+
+impl advanced::TreeOps for AVLTree {
+    fn insert(&mut self, v: u32) {
+        AVLTree::insert(self, v);
+    }
+    fn delete(&mut self, v: u32) -> bool {
+        AVLTree::delete(self, v)
+    }
+    fn search(&self, v: u32) -> bool {
+        AVLTree::search(self, v)
+    }
+    fn count_leaves(&self) -> usize {
+        AVLTree::count_leaves(self)
+    }
+    fn height(&self) -> usize {
+        AVLTree::height(self)
+    }
+    fn is_empty(&self) -> bool {
+        AVLTree::is_empty(self)
+    }
+    fn print_inorder(&self) {
+        AVLTree::print_inorder(self);
+    }
+    fn print_tree(&self) {
+        AVLTree::print_tree(self);
+    }
+}
 
 use moneymaker_avl::AVLTree;
 use moneymaker_rbt::RedBlackTree;
@@ -91,6 +146,8 @@ fn main() {
         println!("│  2. AVL Tree operations                      │");
         println!("│  3. Run benchmarks (RBT vs AVL)              │");
         println!("│  4. Run demo (auto-insert & show both trees) │");
+        println!("│  5. Advanced RBT                             │");
+        println!("│  6. Advanced AVL                             │");
         println!("│  q. Quit                                     │");
         println!("└─────────────────────────────────────────────┘");
         print!("Choice: ");
@@ -106,6 +163,8 @@ fn main() {
             "2" => run_avl_menu(&mut lines),
             "3" => benchmark::run_benchmarks(),
             "4" => run_demo(),
+            "5" => run_rbt_advanced(&mut lines),
+            "6" => run_avl_advanced(&mut lines),
             "q" | "Q" => {
                 println!("Goodbye!");
                 break;
@@ -245,6 +304,70 @@ fn run_avl_menu(lines: &mut impl Iterator<Item = io::Result<String>>) {
             "p" => tree.print_tree(),
             "b" => break,
             _ => println!("Unknown command."),
+        }
+    }
+}
+
+fn run_rbt_advanced(lines: &mut impl Iterator<Item = io::Result<String>>) {
+    let mut tree = RedBlackTree::new();
+    advanced::print_lang_help();
+
+    println!("\n[ Advanced RBT — empty tree created ]");
+    println!("  Enter multi-command expressions, e.g:");
+    println!("    i rang 1 10 h p");
+    println!("    r i rand 1 100 5 h t 3");
+    println!("    b to go back, q to quit");
+
+    loop {
+        print!("RBT+> ");
+        io::stdout().flush().unwrap();
+        let input = match lines.next() {
+            Some(Ok(line)) => line.trim().to_string(),
+            _ => break,
+        };
+        if input.is_empty() {
+            continue;
+        }
+        if input == "?" {
+            advanced::print_lang_help();
+            continue;
+        }
+        match advanced::run_line(&input, &mut tree) {
+            Ok(advanced::ExecResult::Continue) => {}
+            Ok(advanced::ExecResult::Back) | Ok(advanced::ExecResult::Quit) => break,
+            Err(e) => println!("  ✗ {}", e),
+        }
+    }
+}
+
+fn run_avl_advanced(lines: &mut impl Iterator<Item = io::Result<String>>) {
+    let mut tree = AVLTree::new();
+    advanced::print_lang_help();
+
+    println!("\n[ Advanced AVL — empty tree created ]");
+    println!("  Enter multi-command expressions, e.g:");
+    println!("    i rang 1 10 h p");
+    println!("    r i rand 1 100 5 h t 3");
+    println!("    b to go back, q to quit");
+
+    loop {
+        print!("AVL+> ");
+        io::stdout().flush().unwrap();
+        let input = match lines.next() {
+            Some(Ok(line)) => line.trim().to_string(),
+            _ => break,
+        };
+        if input.is_empty() {
+            continue;
+        }
+        if input == "?" {
+            advanced::print_lang_help();
+            continue;
+        }
+        match advanced::run_line(&input, &mut tree) {
+            Ok(advanced::ExecResult::Continue) => {}
+            Ok(advanced::ExecResult::Back) | Ok(advanced::ExecResult::Quit) => break,
+            Err(e) => println!("  ✗ {}", e),
         }
     }
 }
